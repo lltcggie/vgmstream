@@ -1018,9 +1018,7 @@ int get_vgmstream_samples_per_frame(VGMSTREAM * vgmstream) {
 #endif
 #ifdef VGM_USE_FLAC
 		case coding_flac:
-			// return ((flac_codec_data*)vgmstream->codec_data)->samples_per_frame;
-			// TODO: ‚æ‚­‚í‚©‚ç‚È‚¢‚©‚ç‚Æ‚è‚ ‚¦‚¸1
-			return 1;
+			return ((flac_codec_data*)vgmstream->codec_data)->blocksize;
 #endif
         default:
             return 0;
