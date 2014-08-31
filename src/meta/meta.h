@@ -105,7 +105,7 @@ typedef struct {
 
 VGMSTREAM * init_vgmstream_ogg_vorbis_callbacks(STREAMFILE *streamFile, const char * filename, ov_callbacks *callbacks, off_t other_header_bytes, const vgm_vorbis_info_t *vgm_inf);
 
-VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE * streamFile);
+VGMSTREAM * init_vgmstream_sli(STREAMFILE * streamFile);
 
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
 VGMSTREAM * init_vgmstream_mp4_aac(STREAMFILE * streamFile);

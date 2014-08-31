@@ -14,12 +14,12 @@
 
 /* .sli is a file with loop points, associated with a similarly named .ogg */
 
-VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE *streamFile) {
+VGMSTREAM * init_vgmstream_sli(STREAMFILE *streamFile) {
     
 	VGMSTREAM * vgmstream = NULL;
-    STREAMFILE * streamFileOGG = NULL;
+    STREAMFILE * streamFilePlay = NULL;
     char filename[PATH_LIMIT];
-	char filenameOGG[PATH_LIMIT];
+	char filenamePlay[PATH_LIMIT];
     char linebuffer[PATH_LIMIT];
     off_t bytes_read;
     off_t sli_offset;
@@ -34,21 +34,21 @@ VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE *streamFile) {
     if (strcasecmp("sli",filename_extension(filename))) goto fail;
 
 	/* check for .OGG file */
-	strcpy(filenameOGG,filename);
+	strcpy(filenamePlay,filename);
     /* strip off .sli */
-    filenameOGG[strlen(filenameOGG)-4]='\0';
+    filenamePlay[strlen(filenamePlay)-4]='\0';
 
-	streamFileOGG = streamFile->open(streamFile,filenameOGG,STREAMFILE_DEFAULT_BUFFER_SIZE);
-	if (!streamFileOGG) {
+	streamFilePlay = streamFile->open(streamFile,filenamePlay,STREAMFILE_DEFAULT_BUFFER_SIZE);
+	if (!streamFilePlay) {
         goto fail;
     }
 
     /* let the real initer do the parsing */
-    vgmstream = init_vgmstream_ogg_vorbis(streamFileOGG);
+	vgmstream = init_vgmstream_from_STREAMFILE(streamFilePlay);
     if (!vgmstream) goto fail;
 
-    close_streamfile(streamFileOGG);
-    streamFileOGG = NULL;
+    close_streamfile(streamFilePlay);
+    streamFilePlay = NULL;
 
     sli_offset = 0;
     while ((loop_start == -1 || loop_length == -1) && sli_offset < get_streamfile_size(streamFile)) {
@@ -102,11 +102,11 @@ VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE *streamFile) {
         if (loop_to != -1 && loop_from != -1) {
             vgmstream->loop_start_sample = loop_to;
             vgmstream->loop_end_sample = loop_from;
-            vgmstream->meta_type = meta_OGG_SLI2;
+            vgmstream->meta_type = meta_SLI2;
         } else {
             vgmstream->loop_start_sample = loop_start;
             vgmstream->loop_end_sample = loop_start+loop_length;
-            vgmstream->meta_type = meta_OGG_SLI;
+            vgmstream->meta_type = meta_SLI;
         }
     } else goto fail; /* if there's no loop points the .sli wasn't valid */
 
@@ -114,7 +114,7 @@ VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE *streamFile) {
 
     /* clean up anything we may have opened */
 fail:
-    if (streamFileOGG) close_streamfile(streamFileOGG);
+    if (streamFilePlay) close_streamfile(streamFilePlay);
     if (vgmstream) close_vgmstream(vgmstream);
     return NULL;
 }

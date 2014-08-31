@@ -57,7 +57,7 @@ VGMSTREAM * (*init_vgmstream_fcns[])(STREAMFILE *streamFile) = {
     init_vgmstream_genh,
 #ifdef VGM_USE_VORBIS
     init_vgmstream_ogg_vorbis,
-    init_vgmstream_sli_ogg,
+    init_vgmstream_sli,
     init_vgmstream_sfl,
 #endif
 #if 0
@@ -2306,10 +2306,10 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
         case meta_ogg_vorbis:
             snprintf(temp,TEMPSIZE,"Ogg Vorbis");
             break;
-        case meta_OGG_SLI:
+        case meta_SLI:
             snprintf(temp,TEMPSIZE,"Ogg Vorbis with .sli (start,length) for looping");
             break;
-        case meta_OGG_SLI2:
+        case meta_SLI2:
             snprintf(temp,TEMPSIZE,"Ogg Vorbis with .sli (from,to) for looping");
             break;
         case meta_OGG_SFL:
