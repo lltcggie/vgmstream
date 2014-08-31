@@ -60,6 +60,9 @@ VGMSTREAM * (*init_vgmstream_fcns[])(STREAMFILE *streamFile) = {
     init_vgmstream_sli,
     init_vgmstream_sfl,
 #endif
+#ifdef VGM_USE_FLAC
+	init_vgmstream_flac,
+#endif
 #if 0
 	init_vgmstream_mp4_aac,
 #endif
@@ -426,6 +429,15 @@ void reset_vgmstream(VGMSTREAM * vgmstream) {
         ov_pcm_seek(ogg_vorbis_file, 0);
     }
 #endif
+#ifdef VGM_USE_FLAC
+	if (vgmstream->coding_type == coding_flac) {
+		flac_codec_data *data = vgmstream->codec_data;
+
+		FLAC__StreamDecoder *decoder = data->decoder;
+
+		FLAC__stream_decoder_seek_absolute(decoder, 0);
+	}
+#endif
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
 	if (vgmstream->coding_type==coding_MP4_AAC) {
 		mp4_aac_codec_data *data = vgmstream->codec_data;
@@ -604,6 +616,22 @@ void close_vgmstream(VGMSTREAM * vgmstream) {
             vgmstream->codec_data = NULL;
         }
     }
+#endif
+
+#ifdef VGM_USE_FLAC
+	if (vgmstream->coding_type == coding_flac) {
+		flac_codec_data *data = vgmstream->codec_data;
+		if (vgmstream->codec_data) {
+			FLAC__StreamDecoder *decoder = data->decoder;
+
+			FLAC__stream_decoder_finish(decoder);
+			FLAC__stream_decoder_delete(decoder);
+
+			close_streamfile(data->f_streamfile.streamfile);
+			free(vgmstream->codec_data);
+			vgmstream->codec_data = NULL;
+		}
+	}
 #endif
 
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
@@ -820,6 +848,9 @@ void render_vgmstream(sample * buffer, int32_t sample_count, VGMSTREAM * vgmstre
 #ifdef VGM_USE_VORBIS
         case layout_ogg_vorbis:
 #endif
+#ifdef VGM_USE_FLAC
+		case layout_flac:
+#endif
 #ifdef VGM_USE_MPEG
         case layout_fake_mpeg:
         case layout_mpeg:
@@ -984,6 +1015,12 @@ int get_vgmstream_samples_per_frame(VGMSTREAM * vgmstream) {
 #ifdef VGM_USE_MAIATRAC3PLUS
 		case coding_AT3plus:
 			return 2048 - ((maiatrac3plus_codec_data*)vgmstream->codec_data)->samples_discard;
+#endif
+#ifdef VGM_USE_FLAC
+		case coding_flac:
+			// return ((flac_codec_data*)vgmstream->codec_data)->samples_per_frame;
+			// TODO: ‚æ‚­‚í‚©‚ç‚È‚¢‚©‚ç‚Æ‚è‚ ‚¦‚¸1
+			return 1;
 #endif
         default:
             return 0;
@@ -1355,6 +1392,13 @@ void decode_vgmstream(VGMSTREAM * vgmstream, int samples_written, int samples_to
                     vgmstream->channels);
             break;
 #endif
+#ifdef VGM_USE_FLAC
+		case coding_flac:
+			decode_flac(vgmstream->codec_data,
+				buffer + samples_written*vgmstream->channels, samples_to_do,
+				vgmstream->channels);
+			break;
+#endif
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
 		case coding_MP4_AAC:
 			decode_mp4_aac(vgmstream->codec_data,
@@ -1630,6 +1674,19 @@ int vgmstream_do_loop(VGMSTREAM * vgmstream) {
                 ov_pcm_seek_lap(ogg_vorbis_file, vgmstream->loop_sample);
             }
 #endif
+#ifdef VGM_USE_FLAC
+			if (vgmstream->coding_type == coding_flac) {
+				flac_codec_data *data =
+					(flac_codec_data *)(vgmstream->codec_data);
+				FLAC__StreamDecoder *decoder = data->decoder;
+
+				FLAC__stream_decoder_seek_absolute(decoder, vgmstream->loop_sample);
+
+				// reset buffer
+				data->f_buffer.offset = 0;
+				data->f_buffer.remaining_sample = 0;
+			}
+#endif
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
 			if (vgmstream->coding_type==coding_MP4_AAC) {
 				mp4_aac_codec_data *data = (mp4_aac_codec_data *)(vgmstream->codec_data);
@@ -1827,6 +1884,11 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
             snprintf(temp,TEMPSIZE,"Vorbis");
             break;
 #endif
+#ifdef VGM_USE_FLAC
+		case coding_flac:
+			snprintf(temp, TEMPSIZE, "FLAC");
+			break;
+#endif
         case coding_SDX2:
             snprintf(temp,TEMPSIZE,"Squareroot-delta-exact (SDX2) 8-bit DPCM");
             break;
@@ -2017,6 +2079,11 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
         case layout_ogg_vorbis:
             snprintf(temp,TEMPSIZE,"Ogg");
             break;
+#endif
+#ifdef VGM_USE_FLAC
+		case layout_flac:
+			snprintf(temp, TEMPSIZE, "FLAC");
+			break;
 #endif
         case layout_str_snds_blocked:
             snprintf(temp,TEMPSIZE,".str SNDS blocked");
@@ -2324,6 +2391,11 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length) {
         case meta_psych_ogg:
             snprintf(temp,TEMPSIZE,"Ogg Vorbis, Psychic Software obfuscation");
             break;
+#endif
+#ifdef VGM_USE_VORBIS
+		case meta_flac:
+			snprintf(temp, TEMPSIZE, "FLAC");
+			break;
 #endif
         case meta_DSP_SADB:
             snprintf(temp,TEMPSIZE,"sadb header");

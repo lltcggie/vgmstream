@@ -118,6 +118,10 @@ VGMSTREAM * init_vgmstream_akb(STREAMFILE *streamFile);
 VGMSTREAM * init_vgmstream_sfl(STREAMFILE * streamFile);
 #endif
 
+#ifdef VGM_USE_FLAC
+VGMSTREAM * init_vgmstream_flac(STREAMFILE *streamFile);
+#endif
+
 VGMSTREAM * init_vgmstream_sadb(STREAMFILE *streamFile);
 
 VGMSTREAM * init_vgmstream_ps2_bmdx(STREAMFILE * streamFile);

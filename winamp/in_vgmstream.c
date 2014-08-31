@@ -148,7 +148,8 @@ char * extension_list[] = {
     "fag\0FAG Audio File (*.FAG)\0",
     "ffw\0FFW Audio File (*.FFW)\0",
     "filp\0FILP Audio File (*.FILP)\0",
-    "fsb\0FSB Audio File (*.FSB)\0",
+	"flac\0FLAC Audio File (*.FLAC)\0",
+	"fsb\0FSB Audio File (*.FSB)\0",
 
     "gbts\0GBTS Audio File (*.GBTS)\0",
     "gca\0GCA Audio File (*.GCA)\0",

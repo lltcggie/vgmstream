@@ -22,6 +22,9 @@ enum { PATH_LIMIT = 32768 };
 #ifdef VGM_USE_VORBIS
 #include <vorbis/vorbisfile.h>
 #endif
+#ifdef VGM_USE_FLAC
+#include <FLAC/stream_decoder.h>
+#endif
 #ifdef VGM_USE_MPEG
 #include <mpg123.h>
 #endif
@@ -87,6 +90,9 @@ typedef enum {
 
 #ifdef VGM_USE_VORBIS
     coding_ogg_vorbis,      /* vorbis */
+#endif
+#ifdef VGM_USE_FLAC
+	coding_flac,      /* flac */
 #endif
     coding_SDX2,            /* SDX2 2:1 Squareroot-Delta-Exact compression */
     coding_SDX2_int,        /* SDX2 2:1 Squareroot-Delta-Exact compression,
@@ -193,6 +199,9 @@ typedef enum {
     layout_dtk_interleave,  /* dtk interleaves channels by nibble */
 #ifdef VGM_USE_VORBIS
     layout_ogg_vorbis,      /* ogg vorbis file */
+#endif
+#ifdef VGM_USE_FLAC
+	layout_flac,      /* flac file */
 #endif
 #ifdef VGM_USE_MPEG
     layout_fake_mpeg,       /* MPEG audio stream with bad frame headers (AHX) */
@@ -435,6 +444,10 @@ typedef enum {
     meta_um3_ogg,           /* Ogg Vorbis with first 0x800 bytes XOR 0xFF */
     meta_KOVS_ogg,          /* Ogg Vorbis with exta header and 0x100 bytes XOR */
     meta_psych_ogg,          /* Ogg Vorbis with all bytes -0x23*/
+#endif
+
+#ifdef VGM_USE_FLAC
+	meta_flac,        /* flac vorbis */
 #endif
 
     meta_AIFC,              /* Audio Interchange File Format AIFF-C */
@@ -712,6 +725,36 @@ typedef struct {
 
     ogg_vorbis_streamfile ov_streamfile;
 } ogg_vorbis_codec_data;
+#endif
+
+#ifdef VGM_USE_FLAC
+typedef struct {
+	STREAMFILE *streamfile;
+	FLAC__uint64 offset;
+	FLAC__uint64 size;
+} flac_streamfile;
+
+typedef struct {
+	sample *buf;
+	size_t max_size;
+
+	size_t remaining_sample;
+	size_t offset;
+} flac_buffer;
+
+typedef struct {
+	FLAC__StreamDecoder *decoder;
+
+	FLAC__uint64 total_samples;
+	unsigned int channels;
+	unsigned int bps;
+	unsigned int sample_rate;
+	unsigned int blocksize;
+	unsigned int samples_per_frame;
+
+	flac_streamfile f_streamfile;
+	flac_buffer f_buffer;
+} flac_codec_data;
 #endif
 
 #ifdef VGM_USE_MPEG
