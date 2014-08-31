@@ -89,6 +89,18 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">libg7221_decode.lib;libg7221_decode.exp;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="libFLAC_dynamic.def">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">lib /def:libFLAC_dynamic.def /machine:x86
+</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">lib /def:libFLAC_dynamic.def /machine:x86
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">libFLAC_dynamic;libFLAC_dynamic.exp;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">libFLAC_dynamic;libFLAC_dynamic.exp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building library stub</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building library stub</Message>
+    </CustomBuild>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
