@@ -1,4 +1,4 @@
-/* originally from nwatowav.cc 2007.7.28 version, which read: */
+﻿/* originally from nwatowav.cc 2007.7.28 version, which read: */
 /*
  * Copyright 2001-2007  jagarl / Kazunori Ueno <jagarl@creator.club.ne.jp>
  * All Rights Reserved.
@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted.
  *
- * ���Υץ������κ�Ԥ� jagarl �Ǥ���
+ * このプログラムの作者は jagarl です。
  *
- * ���Υץ�����ࡢ�ڤӥ���ѥ���ˤ�ä����������Х��ʥ��
- * �ץ��������ѹ����롢���ʤ��ˤ�����餺�����۲�ǽ�Ǥ���
- * ���κݡ��嵭 Copyright ɽ�����ݻ�����ʤɤξ��ϲݤ���
- * �����б������ݤʤΤǥХ�����������᡼���Ϣ���򤹤�
- * �ʤɤ�ɬ�פ⤢��ޤ��󡣥������ΰ�����ή�Ѥ��뤳�Ȥ�ޤᡢ
- * ����ͳ�ˤ��Ȥ�����������
+ * このプログラム、及びコンパイルによって生成したバイナリは
+ * プログラムを変更する、しないにかかわらず再配布可能です。
+ * その際、上記 Copyright 表示を保持するなどの条件は課しま
+ * せん。対応が面倒なのでバグ報告を除き、メールで連絡をする
+ * などの必要もありません。ソースの一部を流用することを含め、
+ * ご自由にお使いください。
  *
  * THIS SOFTWARE IS PROVIDED BY KAZUNORI 'jagarl' UENO ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
