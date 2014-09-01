@@ -223,7 +223,8 @@ char * extension_list[] = {
     "npsf\0PS2 NPSF Audio File (*.NPSF)\0",
     "nwa\0NWA Audio File (*.NWA)\0",
 
-    "omu\0OMU Audio File (*.OMU)\0",
+	"ogg\0GG Audio File (*.OGG)\0",
+	"omu\0OMU Audio File (*.OMU)\0",
 	"otm\0OTM Audio File (*.OTM)\0",
 
     "p2bt\0P2BT Audio File (*.P2BT)\0",
@@ -359,7 +360,7 @@ char * extension_list[] = {
     "ymf\0YMF Audio File (*.YMF)\0",
 
     "zsd\0ZSD Audio File (*.ZSD)\0",
-    "zwdsp\0ZWDSP Audio File (*.ZWDSP)\0",
+    "zwdsp\0ZWDSP Audio File (*.ZWDSP)\0"
 };
 
 void about(HWND hwndParent) {
