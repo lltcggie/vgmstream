@@ -109,7 +109,7 @@ VGMSTREAM * init_vgmstream_flac(STREAMFILE *streamFile) {
 
 	FLAC__StreamDecoder *decoder = NULL;
 	VGMSTREAM * vgmstream = NULL;
-	flac_codec_data *data;
+	flac_codec_data *data = NULL;
 
     /* check extension, case insensitive */
     streamFile->get_name(streamFile,filename,sizeof(filename));
