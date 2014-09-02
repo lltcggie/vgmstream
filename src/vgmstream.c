@@ -1678,11 +1678,11 @@ int vgmstream_do_loop(VGMSTREAM * vgmstream) {
 					(flac_codec_data *)(vgmstream->codec_data);
 				FLAC__StreamDecoder *decoder = data->decoder;
 
-				FLAC__stream_decoder_seek_absolute(decoder, vgmstream->loop_sample);
-
 				// reset buffer
 				data->f_buffer.offset = 0;
 				data->f_buffer.remaining_sample = 0;
+
+				FLAC__stream_decoder_seek_absolute(decoder, vgmstream->loop_sample);
 			}
 #endif
 #if defined(VGM_USE_MP4V2) && defined(VGM_USE_FDKAAC)
