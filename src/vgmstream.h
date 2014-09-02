@@ -705,6 +705,18 @@ typedef struct {
      * Note also that support must be added for resetting, looping and
      * closing for every codec that uses this, as it will not be handled. */
     void * codec_data;
+
+	/* Tag Data */
+	char artist[1024];
+	char title[1024];
+	char album[1024];
+	char track[30];
+	int year;
+	char genre[1024];
+	char disc[30];
+	char albumartist[1024];
+	char composer[1024];
+	char publisher[1024];
 } VGMSTREAM;
 
 #ifdef VGM_USE_VORBIS
@@ -754,6 +766,8 @@ typedef struct {
 
 	flac_streamfile f_streamfile;
 	flac_buffer f_buffer;
+
+	VGMSTREAM * tmp_vgmstream; // メタデータ読み込み時にしか使わない
 } flac_codec_data;
 #endif
 

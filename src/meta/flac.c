@@ -7,6 +7,8 @@
 #include "meta.h"
 #include "../util.h"
 #include <FLAC/stream_decoder.h>
+#include <FLAC/metadata.h>
+#include <Windows.h>
 
 
 static FLAC__StreamDecoderReadStatus read_func(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
@@ -96,6 +98,100 @@ static void meta_func(const FLAC__StreamDecoder *decoder, const FLAC__StreamMeta
 		f_data->sample_rate = metadata->data.stream_info.sample_rate;
 		f_data->blocksize = metadata->data.stream_info.max_blocksize;
 	}
+	else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+	{
+		flac_codec_data * f_data = client_data;
+
+		if (f_data->tmp_vgmstream)
+		{
+			const FLAC__StreamMetadata_VorbisComment          *vc;
+			unsigned int                                       i;
+
+			vc = &metadata->data.vorbis_comment;
+
+			for (i = 0; i < vc->num_comments; i++) {
+
+				char *key = NULL, *value = NULL;
+				FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(vc->comments[i], &key, &value);
+
+				if (key == NULL || value == NULL) {
+#ifndef _DEBUG
+					free(key);
+					free(value);
+#endif
+					continue;
+				}
+
+				if (_stricmp(key, "artist") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->artist, sizeof(f_data->tmp_vgmstream->artist), NULL, NULL);
+				}
+				else if (_stricmp(key, "title") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->title, sizeof(f_data->tmp_vgmstream->title), NULL, NULL);
+				}
+				else if (_stricmp(key, "album") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->album, sizeof(f_data->tmp_vgmstream->album), NULL, NULL);
+				}
+				else if (_stricmp(key, "tracknumber") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->track, sizeof(f_data->tmp_vgmstream->track), NULL, NULL);
+				}
+				else if (_stricmp(key, "date") == 0)
+				{
+					f_data->tmp_vgmstream->year = atoi(value);
+				}
+				else if (_stricmp(key, "genre") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->genre, sizeof(f_data->tmp_vgmstream->genre), NULL, NULL);
+				}
+				else if (_stricmp(key, "discnumber") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->disc, sizeof(f_data->tmp_vgmstream->disc), NULL, NULL);
+				}
+				else if (_stricmp(key, "albumartist") == 0)
+				{
+					// TODO: このキーで良いかチェック
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->albumartist, sizeof(f_data->tmp_vgmstream->albumartist), NULL, NULL);
+				}
+				else if (_stricmp(key, "composer") == 0)
+				{
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->composer, sizeof(f_data->tmp_vgmstream->composer), NULL, NULL);
+				}
+				else if (_stricmp(key, "publisher") == 0)
+				{
+					// TODO: このキーで良いかチェック
+					wchar_t buf[1024];
+					if (MultiByteToWideChar(CP_UTF8, 0, value, -1, buf, sizeof(buf) / sizeof(buf[0])) != 0)
+						WideCharToMultiByte(CP_ACP, 0, buf, -1, f_data->tmp_vgmstream->publisher, sizeof(f_data->tmp_vgmstream->publisher), NULL, NULL);
+				}
+
+				// FLACのライブラリがmallocで確保するが、MTdとMTのmallocとfreeは別物なのでデバッグビルドでfreeを呼び出すとエラーになる。
+				// なので、とりあえずデバッグビルド時はメモリ解放を行わないことでエラーを回避
+#ifndef _DEBUG
+				free(key);
+				free(value);
+#endif
+			}
+		}
+	}
 }
 
 static void error_func(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -127,6 +223,7 @@ VGMSTREAM * init_vgmstream_flac(STREAMFILE *streamFile) {
 	data->f_streamfile.size = get_streamfile_size(data->f_streamfile.streamfile);
 
 	FLAC__stream_decoder_set_md5_checking(decoder, true);
+	FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 	if (FLAC__stream_decoder_init_stream(decoder, read_func, seek_func, tell_func, length_func, eof_func, write_func, meta_func, error_func, data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
 		goto fail;
@@ -155,6 +252,17 @@ VGMSTREAM * init_vgmstream_flac(STREAMFILE *streamFile) {
 	vgmstream->coding_type = coding_flac;
 	vgmstream->layout_type = layout_flac;
 	vgmstream->meta_type = meta_flac;
+
+	data->tmp_vgmstream = vgmstream;
+
+	// タグデータを読み込む
+	if(!FLAC__stream_decoder_reset(decoder))
+		goto fail;
+
+	if (!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
+		goto fail;
+
+	data->tmp_vgmstream = NULL;
 	
 	return vgmstream;
 	/* clean up anything we may have opened */

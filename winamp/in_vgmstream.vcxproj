@@ -90,6 +90,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="in2.h" />
+    <ClInclude Include="out.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

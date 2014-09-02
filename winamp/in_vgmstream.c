@@ -71,6 +71,9 @@ int decode_pos_samples = 0;
 int stream_length_samples = 0;
 int fade_samples = 0;
 
+VGMSTREAM * vgmstreamExt = NULL;
+char ExtLastFn[1024 * 2];
+
 #define EXTENSION_LIST_SIZE 10240
 char working_extension_list[EXTENSION_LIST_SIZE] = {0};
 char * extension_list[] = {
@@ -370,7 +373,14 @@ void about(HWND hwndParent) {
             "http://sourceforge.net/projects/vgmstream"
             ,"about in_vgmstream",MB_OK);
 }
-void quit() {}
+void quit()
+{
+	if (vgmstreamExt)
+	{
+		close_vgmstream(vgmstreamExt);
+		vgmstreamExt = NULL;
+	}
+}
 
 void build_extension_list() {
     int i;
@@ -457,10 +467,10 @@ void init() {
 }
 
 /* we don't recognize protocols */
-int isourfile(char *fn) { return 0; }
+int isourfile(const in_char *fn) { return 0; }
 
 /* request to start playing a file */
-int play(char *fn)
+int play(const in_char *fn)
 {
     int max_latency;
 
@@ -575,7 +585,7 @@ void setvolume(int volume) { input_module.outMod->SetVolume(volume); }
 void setpan(int pan) { input_module.outMod->SetPan(pan); }
 
 /* display information */
-int infoDlg(char *fn, HWND hwnd) {
+int infoDlg(const in_char *fn, HWND hwnd) {
     VGMSTREAM * infostream = NULL;
     char description[1024];
     description[0]='\0';
@@ -598,7 +608,7 @@ int infoDlg(char *fn, HWND hwnd) {
 }
 
 /* retrieve information on this or possibly another file */
-void getfileinfo(char *filename, char *title, int *length_in_ms) {
+void getfileinfo(const in_char *filename, in_char *title, int *length_in_ms) {
     if (!filename || !*filename)  /* currently playing file*/
     {
         if (!vgmstream) return;
@@ -626,7 +636,7 @@ void getfileinfo(char *filename, char *title, int *length_in_ms) {
         }
         if (title) 
         {
-            char *p=filename+strlen(filename);
+            const char *p=filename+strlen(filename);
             while (*p != '\\' && p >= filename) p--;
             strcpy(title,++p);
         }
@@ -882,35 +892,35 @@ void config(HWND hwndParent) {
 
 In_Module input_module = 
 {
-    IN_VER,
-    PLUGIN_DESCRIPTION,
-    0,  /* hMainWindow */
-    0,  /* hDllInstance */
-    working_extension_list,
-    1, /* is_seekable  */
-    1, /* uses output */
-    config,
-    about,
-    init,
-    quit,
-    getfileinfo,
-    infoDlg,
-    isourfile,
-    play,
-    pause,
-    unpause,
-    ispaused,
-    stop,
-    getlength,
-    getoutputtime,
-    setoutputtime,
-    setvolume,
-    setpan,
-    0,0,0,0,0,0,0,0,0, // vis stuff
-    0,0, // dsp
-    eq_set,
-    NULL,       // setinfo
-    0 // out_mod
+    IN_VER,								// 	int version;				// module type (IN_VER)
+    PLUGIN_DESCRIPTION,					// 	char *description;			// description of module, with version string
+	0,									//  HWND hMainWindow;		// winamp's main window (filled in by winamp)
+    0,									// 	HINSTANCE hDllInstance;		// DLL instance handle (Also filled in by winamp)
+    working_extension_list,				// 	char *FileExtensions;		// "mp3\0Layer 3 MPEG\0mp2\0Layer 2 MPEG\0mpg\0Layer 1 MPEG\0"
+    1, /* is_seekable  */				// 	int is_seekable;			// is this stream seekable? 
+	IN_MODULE_FLAG_USES_OUTPUT_PLUGIN, 	// 	int UsesOutputPlug;			// does this plug-in use the output plug-ins? (musn't ever change, ever :)
+    config,								// 	void (*Config)(HWND hwndParent); // configuration dialog
+    about,								// 	void (*About)(HWND hwndParent);  // about dialog
+    init,								// 	void (*Init)();				// called at program init
+    quit,								// 	void (*Quit)();				// called at program quit
+    getfileinfo,						// 	void (*GetFileInfo)(const in_char *file, in_char *title, int *length_in_ms); // if file == NULL, current playing is used
+    infoDlg,							// 	int (*InfoBox)(const in_char *file, HWND hwndParent);
+    isourfile,							// 	int (*IsOurFile)(const in_char *fn);	// called before extension checks, to allow detection of mms://, etc
+    play,								// 	int (*Play)(const in_char *fn);		// return zero on success, -1 on file-not-found, some other value on other (stopping winamp) error
+    pause,								// 	void (*Pause)();			// pause stream
+    unpause,							// 	void (*UnPause)();			// unpause stream
+    ispaused,							// 	int (*IsPaused)();			// ispaused? return 1 if paused, 0 if not
+    stop,								// 	void (*Stop)();				// stop (unload) stream
+    getlength,							// 	int (*GetLength)();			// get length in ms
+    getoutputtime,						// 	int (*GetOutputTime)();		// returns current output time in ms. (usually returns outMod->GetOutputTime()
+    setoutputtime,						// 	void (*SetOutputTime)(int time_in_ms);	// seeks to point in stream (in ms). Usually you signal your thread to seek, which seeks and calls outMod->Flush()..
+    setvolume,							// 	void (*SetVolume)(int volume);	// from 0 to 255.. usually just call outMod->SetVolume
+    setpan,								// 	void (*SetPan)(int pan);	// from -127 to 127.. usually just call outMod->SetPan
+    0,0,0,0,0,0,0,0,0,					//  vis stuff
+    0,0, // dsp							//  int (*dsp_isactive)();  int (*dsp_dosamples)(short int *samples, int numsamples, int bps, int nch, int srate);
+    eq_set,								// 	void (*EQSet)(int on, char data[10], int preamp); // 0-64 each, 31 is +0, 0 is +12, 63 is -12. Do nothing to ignore.
+    NULL,       // setinfo				// 	void (*SetInfo)(int bitrate, int srate, int stereo, int synched); // if -1, changes ignored? :)
+    0 // out_mod						// 	Out_Module *outMod; // filled in by winamp, optionally used :)
 };
 
 __declspec( dllexport ) In_Module * winampGetInModule2()
@@ -918,3 +928,172 @@ __declspec( dllexport ) In_Module * winampGetInModule2()
     return &input_module;
 }
 
+/*
+length
+artist
+title
+streamtype
+album
+track
+year
+genre
+disc
+albumartist
+composer
+publisher
+*/
+
+int __declspec(dllexport) winampGetExtendedFileInfo(const char *fn, const char *data, char *dest, int destlen)
+{
+	if (_stricmp(fn, ExtLastFn))
+	{
+		if (vgmstreamExt)
+		{
+			close_vgmstream(vgmstreamExt);
+			vgmstreamExt = NULL;
+			strcpy(ExtLastFn, "");
+		}
+
+		if (vgmstreamExt = init_vgmstream(fn))
+			strcpy(ExtLastFn, fn);
+	}
+
+	if (!vgmstreamExt)
+		return 0;
+
+	if (_stricmp(data, "length") == 0)
+	{
+		int32_t length_in_ms = get_vgmstream_play_samples(loop_count, fade_seconds, fade_delay_seconds, vgmstreamExt) * 1000LL / vgmstreamExt->sample_rate;
+
+		itoa(length_in_ms, dest, 10);
+
+		return 1;
+	}
+	else if (_stricmp(data, "artist") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->artist);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->artist, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "title") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->title);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->title, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "album") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->album);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->album, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "track") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->track);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->track, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "year") == 0)
+	{
+		if (vgmstreamExt->year > 0)
+		{
+			itoa(vgmstreamExt->year, dest, 10);
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "genre") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->genre);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->genre, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "disc") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->disc);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->disc, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "albumartist") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->albumartist);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->albumartist, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "composer") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->composer);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->composer, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+	else if (_stricmp(data, "publisher") == 0)
+	{
+		size_t len = strlen(vgmstreamExt->publisher);
+		if (len > 0)
+		{
+			if (len + 1 > destlen)
+				len = destlen - 1;
+
+			memcpy(dest, vgmstreamExt->publisher, len);
+			dest[len] = '\0';
+			return 1;
+		}
+	}
+
+	return 0;
+}
