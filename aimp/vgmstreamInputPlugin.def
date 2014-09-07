@@ -1,0 +1,3 @@
+LIBRARY   in_vgmstream_aimp
+EXPORTS
+  AIMP_QueryInput;

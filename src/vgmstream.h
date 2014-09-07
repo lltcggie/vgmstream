@@ -5,6 +5,10 @@
 #ifndef _VGMSTREAM_H
 #define _VGMSTREAM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 enum { PATH_LIMIT = 32768 };
 
 /* Due mostly to licensing issues, Vorbis, MPEG, and G.722.1 decoding are
@@ -925,5 +929,9 @@ void describe_vgmstream(VGMSTREAM * vgmstream, char * desc, int length);
  * If a suitable file is found, open it and change opened_stream to a
  * stereo stream. */
 void try_dual_file_stereo(VGMSTREAM * opened_stream, STREAMFILE *streamFile);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif

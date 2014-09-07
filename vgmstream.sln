@@ -9,6 +9,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "in_vgmstream", "winamp\in_v
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ext_libs", "ext_libs\ext_libs.vcxproj", "{10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aimp", "aimp\aimp.vcxproj", "{FFA85501-91C8-4E11-BE4D-F373294C35E0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{54A6AD11-5369-4895-A06F-E255ABB99B11} = {54A6AD11-5369-4895-A06F-E255ABB99B11}
+		{10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF} = {10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -27,6 +33,10 @@ Global
 		{10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF}.Debug|Win32.Build.0 = Debug|Win32
 		{10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF}.Release|Win32.ActiveCfg = Release|Win32
 		{10E6BFC6-1E5B-46E4-BA42-F04DFBD0ABFF}.Release|Win32.Build.0 = Release|Win32
+		{FFA85501-91C8-4E11-BE4D-F373294C35E0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FFA85501-91C8-4E11-BE4D-F373294C35E0}.Debug|Win32.Build.0 = Debug|Win32
+		{FFA85501-91C8-4E11-BE4D-F373294C35E0}.Release|Win32.ActiveCfg = Release|Win32
+		{FFA85501-91C8-4E11-BE4D-F373294C35E0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
