@@ -2,8 +2,8 @@
 #include <ctype.h>
 
 
-/* .sli+ogg/opus - KiriKiri engine / WaveLoopManager loop points loader [Fate/Stay Night (PC), World End Economica (PC)] */
-VGMSTREAM* init_vgmstream_sli_ogg(STREAMFILE* sf) {
+/* .sli - KiriKiri engine / WaveLoopManager loop points loader [Fate/Stay Night (PC), World End Economica (PC)] */
+VGMSTREAM* init_vgmstream_sli(STREAMFILE* sf) {
     VGMSTREAM* vgmstream = NULL;
     STREAMFILE* sf_data = NULL;
     int32_t loop_start = -1, loop_length = -1;
@@ -21,24 +21,29 @@ VGMSTREAM* init_vgmstream_sli_ogg(STREAMFILE* sf) {
         if (!sf_data) goto fail;
     }
 
-    if (!is_id32be(0x00, sf_data, "OggS"))
-        goto fail;
+    if (is_id32be(0x00, sf_data, "OggS")) {
+        /* let the real initer do the parsing */
+        if (is_id32be(0x1c, sf_data, "Opus")) { /* Sabbat of the Witch (PC) */
+            vgmstream = init_vgmstream_ogg_opus(sf_data);
+            if (!vgmstream) goto fail;
 
-    /* let the real initer do the parsing */
-    if (is_id32be(0x1c, sf_data, "Opus")) { /* Sabbat of the Witch (PC) */
-        vgmstream = init_vgmstream_ogg_opus(sf_data);
+            /* somehow sli+opus use 0 encoder delay in the OpusHead (to simplify looping?) */
+            vgmstream->meta_type = meta_OPUS_SLI;
+        }
+        else { /* Fate/Stay Night (PC) */
+            vgmstream = init_vgmstream_ogg_vorbis(sf_data);
+            if (!vgmstream) goto fail;
+
+            vgmstream->meta_type = meta_OGG_SLI;
+        }
+    }
+    else {
+        /* let the real initer do the parsing */
+        vgmstream = init_vgmstream_from_STREAMFILE(sf_data);
         if (!vgmstream) goto fail;
 
-        /* somehow sli+opus use 0 encoder delay in the OpusHead (to simplify looping?) */
-        vgmstream->meta_type = meta_OPUS_SLI;
+        vgmstream->meta_type = meta_SLI;
     }
-    else { /* Fate/Stay Night (PC) */
-        vgmstream = init_vgmstream_ogg_vorbis(sf_data);
-        if (!vgmstream) goto fail;
-
-        vgmstream->meta_type = meta_OGG_SLI;
-    }
-
 
     /* find loop text */
     {

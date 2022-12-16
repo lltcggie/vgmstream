@@ -163,7 +163,7 @@ VGMSTREAM * init_vgmstream_mp4_aac_offset(STREAMFILE *streamFile, uint64_t start
 VGMSTREAM * init_vgmstream_akb_mp4(STREAMFILE *streamFile);
 #endif
 
-VGMSTREAM * init_vgmstream_sli_ogg(STREAMFILE * streamFile);
+VGMSTREAM * init_vgmstream_sli(STREAMFILE * streamFile);
 
 VGMSTREAM * init_vgmstream_sfl_ogg(STREAMFILE * streamFile);
 

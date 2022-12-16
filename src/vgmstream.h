@@ -628,6 +628,7 @@ typedef enum {
     meta_PC_FLX,            /* Ultima IX PC */
     meta_MOGG,              /* Harmonix Music Systems MOGG Vorbis */
     meta_OGG_VORBIS,        /* Ogg Vorbis */
+    meta_SLI,               /* General file w/ companion .sli for looping */
     meta_OGG_SLI,           /* Ogg Vorbis file w/ companion .sli for looping */
     meta_OPUS_SLI,          /* Ogg Opus file w/ companion .sli for looping */
     meta_OGG_SFL,           /* Ogg Vorbis file w/ .sfl (RIFF SFPL) for looping */
