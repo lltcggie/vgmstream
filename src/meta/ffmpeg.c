@@ -5,6 +5,7 @@
 
 static int read_pos_file(uint8_t* buf, size_t bufsize, STREAMFILE* sf);
 static int find_meta_loops(ffmpeg_codec_data* data, int32_t* p_loop_start, int32_t* p_loop_end);
+static const char* get_meta_data(ffmpeg_codec_data* data, const char* key);
 
 /* parses any format supported by FFmpeg and not handled elsewhere:
  * - MPC (.mpc, mp+): Moonshine Runners (PC), Asphalt 7 (PC)
@@ -26,6 +27,7 @@ VGMSTREAM* init_vgmstream_ffmpeg(STREAMFILE* sf) {
     int32_t loop_start = 0, loop_end = 0, num_samples = 0, encoder_delay = 0;
     int total_subsongs, target_subsong = sf->stream_index;
     int faulty = 0; /* mark wonky rips in hopes people may fix them */
+    const char* tmp;
 
     /* no checks */
     //if (!check_extensions(sf, "..."))
@@ -142,6 +144,20 @@ VGMSTREAM* init_vgmstream_ffmpeg(STREAMFILE* sf) {
     vgmstream->loop_end_sample = loop_end;
     vgmstream->channel_layout = ffmpeg_get_channel_layout(vgmstream->codec_data);
 
+    vgmstream->artist = (char*)get_meta_data(data, "artist");
+    vgmstream->title = (char*)get_meta_data(data, "title");
+    vgmstream->album = (char*)get_meta_data(data, "album");
+    vgmstream->track = (char*)get_meta_data(data, "track");
+    vgmstream->genre = (char*)get_meta_data(data, "genre");
+    vgmstream->disc = (char*)get_meta_data(data, "disc");
+    vgmstream->albumartist = (char*)get_meta_data(data, "albumartist");
+    vgmstream->composer = (char*)get_meta_data(data, "composer");
+    vgmstream->publisher = (char*)get_meta_data(data, "publisher");
+
+    tmp = ffmpeg_get_metadata_value(data, "year");
+    if (tmp)
+        vgmstream->year = strtol(tmp, NULL, 10);
+
     return vgmstream;
 
 fail:
@@ -151,6 +167,16 @@ fail:
         close_vgmstream(vgmstream);
     }
     return NULL;
+}
+
+
+static const char* get_meta_data(ffmpeg_codec_data* data, const char* key)
+{
+    const char* meta = ffmpeg_get_metadata_value(data, key);
+    if (meta)
+        meta = strdup(meta);
+
+    return meta;
 }
 
 

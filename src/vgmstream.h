@@ -1020,6 +1020,18 @@ typedef struct {
     sample_t* tmpbuf;               /* garbage buffer used for seeking/trimming */
     size_t tmpbuf_size;             /* for all channels (samples = tmpbuf_size / channels) */
 
+    /* Tag Data */
+    char* artist;
+    char* title;
+    char* album;
+    char* track;
+    int year;
+    char* genre;
+    char* disc;
+    char* albumartist;
+    char* composer;
+    char* publisher;
+
 } VGMSTREAM;
 
 

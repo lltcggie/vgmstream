@@ -1067,6 +1067,71 @@ fail:
     return strcasecmp(metadata, "replaygain_track_gain") == 0 ? 1 : 0;
 }
 
+static int get_meta_from_vgmstream(char* metadata, wchar_t* ret, int retlen)
+{
+    if (!vgmstream)
+        return 0;
+
+    if (_stricmp(metadata, "length") == 0)
+    {
+        int32_t length_in_ms = get_vgmstream_play_samples(settings.loop_count, settings.fade_time, settings.fade_delay, vgmstream) * 1000LL / vgmstream->sample_rate;
+        _itow(length_in_ms, ret, 10);
+
+        return 1;
+    }
+    else if (_stricmp(metadata, "artist") == 0 && vgmstream->artist)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->artist);
+        return 1;
+    }
+    else if (_stricmp(metadata, "title") == 0 && vgmstream->title)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->title);
+        return 1;
+    }
+    else if (_stricmp(metadata, "album") == 0 && vgmstream->album)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->album);
+        return 1;
+    }
+    else if (_stricmp(metadata, "track") == 0 && vgmstream->track)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->track);
+        return 1;
+    }
+    else if (_stricmp(metadata, "year") == 0 && vgmstream->year >= 0)
+    {
+        _itow(vgmstream->year, ret, 10);
+        return 1;
+    }
+    else if (_stricmp(metadata, "genre") == 0 && vgmstream->genre)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->genre);
+        return 1;
+    }
+    else if (_stricmp(metadata, "disc") == 0 && vgmstream->disc)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->disc);
+        return 1;
+    }
+    else if (_stricmp(metadata, "albumartist") == 0 && vgmstream->albumartist)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->albumartist);
+        return 1;
+    }
+    else if (_stricmp(metadata, "composer") == 0 && vgmstream->composer)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->composer);
+        return 1;
+    }
+    else if (_stricmp(metadata, "publisher") == 0 && vgmstream->publisher)
+    {
+        wa_char_to_wchar(ret, retlen, vgmstream->publisher);
+        return 1;
+    }
+
+    return 0;
+}
 
 /* for Winamp 5.24 */
 __declspec (dllexport) int winampGetExtendedFileInfo(char *filename, char *metadata, char *ret, int retlen) {
@@ -1094,7 +1159,7 @@ __declspec (dllexport) int winampGetExtendedFileInfoW(wchar_t *filename, char *m
     int ok;
 
     if (settings.tagfile_disable)
-        return 0;
+        return get_meta_from_vgmstream(metadata, ret, retlen);
 
     wa_wchar_to_ichar(filename_ichar,PATH_LIMIT, filename);
 
@@ -1102,7 +1167,7 @@ __declspec (dllexport) int winampGetExtendedFileInfoW(wchar_t *filename, char *m
 
     ok = winampGetExtendedFileInfo_common(filename_ichar, metadata, ret_utf8,2048);
     if (ok == 0)
-        return 0;
+        return get_meta_from_vgmstream(metadata, ret, retlen);
 
     wa_char_to_wchar(ret,retlen, ret_utf8);
 

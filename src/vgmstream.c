@@ -778,6 +778,17 @@ VGMSTREAM* allocate_vgmstream(int channel_count, int loop_flag) {
     vgmstream->channels = channel_count;
     vgmstream->loop_flag = loop_flag;
 
+    vgmstream->artist = NULL;
+    vgmstream->title = NULL;
+    vgmstream->album = NULL;
+    vgmstream->track = NULL;
+    vgmstream->year = -1;
+    vgmstream->genre = NULL;
+    vgmstream->disc = NULL;
+    vgmstream->albumartist = NULL;
+    vgmstream->composer = NULL;
+    vgmstream->publisher = NULL;
+
     mixing_init(vgmstream); /* pre-init */
 
     /* BEWARE: try_dual_file_stereo does some free'ing too */ 
@@ -826,6 +837,16 @@ void close_vgmstream(VGMSTREAM* vgmstream) {
             }
         }
     }
+
+    free(vgmstream->artist);
+    free(vgmstream->title);
+    free(vgmstream->album);
+    free(vgmstream->track);
+    free(vgmstream->genre);
+    free(vgmstream->disc);
+    free(vgmstream->albumartist);
+    free(vgmstream->composer);
+    free(vgmstream->publisher);
 
     mixing_close(vgmstream);
     free(vgmstream->tmpbuf);
