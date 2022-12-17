@@ -142,6 +142,28 @@ static inline void wa_char_to_ichar(in_char *wdst, size_t wdstsize, const char *
 #endif
 }
 
+/* converts from utf16 to native char (if unicode is on) */
+static inline void wa_ichar_to_native_char(char* dst, size_t dstsize, const in_char* wsrc) {
+#ifdef UNICODE_INPUT_PLUGIN
+    /* converto to ACP codepage, default separate bytes, source wstr, wstr length */
+    WideCharToMultiByte(CP_ACP, 0, wsrc, -1, dst, dstsize, NULL, NULL);
+#else
+    strncpy(dst, wsrc, dstsize);
+    dst[dstsize - 1] = '\0';
+#endif
+}
+
+/* converts from native char to utf16 (if unicode is on) */
+static inline void wa_native_char_to_ichar(in_char* wdst, size_t wdstsize, const char* src) {
+#ifdef UNICODE_INPUT_PLUGIN
+    //int size_needed = MultiByteToWideChar(CP_UTF8,0, src,-1, NULL,0);
+    MultiByteToWideChar(CP_ACP, 0, src, -1, wdst, wdstsize);
+#else
+    strncpy(wdst, src, wdstsize);
+    wdst[wdstsize - 1] = '\0';
+#endif
+}
+
 /* copies from utf16 to utf16 (if unicode is active) */
 static inline void wa_wchar_to_ichar(in_char *wdst, size_t wdstsize, const wchar_t *src) {
 #ifdef UNICODE_INPUT_PLUGIN

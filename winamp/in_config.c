@@ -58,8 +58,12 @@ int priority_values[7] = {
 static void ini_get_filename(In_Module* input_module, TCHAR *inifile) {
 
     if (IsWindow(input_module->hMainWindow) && SendMessage(input_module->hMainWindow, WM_WA_IPC,0,IPC_GETVERSION) >= 0x5000) {
+        in_char ini_dir[PATH_LIMIT];
+
         /* newer Winamp with per-user settings */
-        TCHAR *ini_dir = (TCHAR *)SendMessage(input_module->hMainWindow, WM_WA_IPC, 0, IPC_GETINIDIRECTORY);
+        char *ini_dir_c = (char *)SendMessageA(input_module->hMainWindow, WM_WA_IPC, 0, IPC_GETINIDIRECTORY);
+        wa_native_char_to_ichar(ini_dir, PATH_LIMIT, ini_dir_c);
+
         cfg_strncpy(inifile, ini_dir, PATH_LIMIT);
 
         cfg_strncat(inifile, TEXT("\\Plugins\\"), PATH_LIMIT);
@@ -90,7 +94,7 @@ static void ini_get_filename(In_Module* input_module, TCHAR *inifile) {
 }
 
 
-static void ini_get_d(const char *inifile, const char *entry, double defval, double *p_val) {
+static void ini_get_d(const TCHAR *inifile, const TCHAR *entry, double defval, double *p_val) {
     TCHAR buf[256];
     TCHAR defbuf[256];
     int consumed, res;
@@ -102,27 +106,27 @@ static void ini_get_d(const char *inifile, const char *entry, double defval, dou
         *p_val = defval;
     }
 }
-static void ini_get_i(const char *inifile, const char *entry, int defval, int *p_val, int min, int max) {
+static void ini_get_i(const TCHAR *inifile, const TCHAR *entry, int defval, int *p_val, int min, int max) {
     *p_val = GetPrivateProfileInt(CONFIG_APP_NAME, entry, defval, inifile);
     if (*p_val < min || *p_val > max) {
         *p_val = defval;
     }
 }
-static void ini_get_b(const char *inifile, const char *entry, int defval, int *p_val) {
+static void ini_get_b(const TCHAR *inifile, const TCHAR *entry, int defval, int *p_val) {
     ini_get_i(inifile, entry, defval, p_val, 0, 1);
 }
 
-static void ini_set_d(const char *inifile, const char *entry, double val) {
+static void ini_set_d(const TCHAR *inifile, const TCHAR *entry, double val) {
     TCHAR buf[256];
     cfg_sprintf(buf, TEXT("%.2lf"), val);
     WritePrivateProfileString(CONFIG_APP_NAME, entry, buf, inifile);
 }
-static void ini_set_i(const char *inifile, const char *entry, int val) {
+static void ini_set_i(const TCHAR *inifile, const TCHAR *entry, int val) {
     TCHAR buf[32];
     cfg_sprintf(buf, TEXT("%d"), val);
     WritePrivateProfileString(CONFIG_APP_NAME, entry, buf, inifile);
 }
-static void ini_set_b(const char *inifile, const char *entry, int val) {
+static void ini_set_b(const TCHAR *inifile, const TCHAR *entry, int val) {
     ini_set_i(inifile, entry, val);
 }
 
@@ -380,8 +384,12 @@ INT_PTR CALLBACK configDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
                         }
                     }
 
+#ifdef UNICODE_INPUT_PLUGIN
+                    MessageBox(hDlg, wbuf, TEXT("vgmstream log"), MB_OK);
+#else
                     cfg_char_to_wchar(wbuf, buf_size, buf);
                     MessageBox(hDlg, buf, TEXT("vgmstream log"), MB_OK);
+#endif
                     break;
                 }
 
